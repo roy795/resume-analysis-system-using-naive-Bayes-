@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .password-strength-meter {
+            height: 5px;
+            background-color: #f3f3f3;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+        
+        .password-strength-meter div {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .strength-weak { background-color: #ff4d4d; }
+        .strength-medium { background-color: #ffd700; }
+        .strength-strong { background-color: #2ecc71; }
+
+        .password-requirements {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .requirement-met {
+            color: #2ecc71;
+        }
+
+        .requirement-unmet {
+            color: #ff4d4d;
+        }
+
+        .input-with-validation {
+            position: relative;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .validation-feedback {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1 class="mb-4">Register</h1>
+        <form method="POST" id="registrationForm" novalidate>
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-with-validation">
+                    <input type="text" 
+                           class="form-control" 
+                           id="username" 
+                           name="username" 
+                           minlength="3" 
+                           maxlength="20" 
+                           pattern="^[a-zA-Z0-9_-]*$"
+                           required>
+                    <span class="validation-icon"></span>
+                </div>
+                <div class="validation-feedback" id="username-feedback"></div>
+                <small class="text-muted">3-20 characters, letters, numbers, underscore, and hyphen only</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <div class="input-with-validation">
+                    <input type="email" 
+                           class="form-control" 
+                           id="email" 
+                           name="email" 
+                           required>
+                    <span class="validation-icon"></span>
+                </div>
+                <div class="validation-feedback" id="email-feedback"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-with-validation">
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           required>
+                    <span class="validation-icon"></span>
+                </div>
+                <div class="password-strength-meter">
+                    <div id="strength-meter" style="width: 0%"></div>
+                </div>
+                <div class="password-requirements">
+                    <p id="length-req">❌ At least 8 characters</p>
+                    <p id="uppercase-req">❌ At least one uppercase letter</p>
+                    <p id="lowercase-req">❌ At least one lowercase letter</p>
+                    <p id="number-req">❌ At least one number</p>
+                    <p id="special-req">❌ At least one special character</p>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="confirm-password" class="form-label">Confirm Password</label>
+                <div class="input-with-validation">
+                    <input type="password" 
+                           class="form-control" 
+                           id="confirm-password" 
+                           name="confirm-password" 
+                           required>
+                    <span class="validation-icon"></span>
+                </div>
+                <div class="validation-feedback" id="confirm-password-feedback"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Register</button>
+        </form>
+        <p class="mt-3">Already registered? <a href="{{ url_for('login') }}">Login here</a></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+   // Replace the existing script with this updated version
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('registrationForm');
+        const username = document.getElementById('username');
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm-password');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Form submission handler
+        form.addEventListener('submit', function(event) {
+            // Only prevent default if validation fails
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
+
+        // Username validation
+        username.addEventListener('input', validateForm);
+        email.addEventListener('input', validateForm);
+        password.addEventListener('input', validateForm);
+        confirmPassword.addEventListener('input', validateForm);
+
+        function validateForm() {
+            const usernameValid = /^[a-zA-Z0-9_-]{3,20}$/.test(username.value);
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
+            
+            // Password requirements
+            const passwordValid = password.value.length >= 8 &&
+                                /[A-Z]/.test(password.value) &&
+                                /[a-z]/.test(password.value) &&
+                                /[0-9]/.test(password.value) &&
+                                /[!@#$%^&*(),.?":{}|<>]/.test(password.value);
+            
+            const passwordsMatch = password.value === confirmPassword.value;
+
+            // Update UI for each field
+            updateValidationUI(username, usernameValid, 
+                'username-feedback',
+                'Username looks good!',
+                'Username must be 3-20 characters and can only contain letters, numbers, underscore, and hyphen');
+
+            updateValidationUI(email, emailValid,
+                'email-feedback',
+                'Email looks good!',
+                'Please enter a valid email address');
+
+            validatePasswordStrength();
+
+            updateValidationUI(confirmPassword, passwordsMatch,
+                'confirm-password-feedback',
+                'Passwords match!',
+                'Passwords do not match');
+
+            // Enable/disable submit button
+            const formValid = usernameValid && emailValid && passwordValid && passwordsMatch;
+            submitBtn.disabled = !formValid;
+
+            return formValid;
+        }
+
+        function validatePasswordStrength() {
+            const value = password.value;
+            const requirements = {
+                length: value.length >= 8,
+                uppercase: /[A-Z]/.test(value),
+                lowercase: /[a-z]/.test(value),
+                number: /[0-9]/.test(value),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(value)
+            };
+
+            // Update requirement indicators
+            document.getElementById('length-req').innerHTML = 
+                `${requirements.length ? '✅' : '❌'} At least 8 characters`;
+            document.getElementById('uppercase-req').innerHTML = 
+                `${requirements.uppercase ? '✅' : '❌'} At least one uppercase letter`;
+            document.getElementById('lowercase-req').innerHTML = 
+                `${requirements.lowercase ? '✅' : '❌'} At least one lowercase letter`;
+            document.getElementById('number-req').innerHTML = 
+                `${requirements.number ? '✅' : '❌'} At least one number`;
+            document.getElementById('special-req').innerHTML = 
+                `${requirements.special ? '✅' : '❌'} At least one special character`;
+
+            // Calculate password strength
+            const strengthMeter = document.getElementById('strength-meter');
+            let strength = 0;
+            Object.values(requirements).forEach(req => {
+                if (req) strength += 20;
+            });
+
+            strengthMeter.style.width = `${strength}%`;
+            if (strength <= 40) {
+                strengthMeter.className = 'strength-weak';
+            } else if (strength <= 80) {
+                strengthMeter.className = 'strength-medium';
+            } else {
+                strengthMeter.className = 'strength-strong';
+            }
+
+            return Object.values(requirements).every(req => req);
+        }
+
+        function updateValidationUI(element, isValid, feedbackId, successMessage, errorMessage) {
+            const icon = element.nextElementSibling;
+            const feedback = feedbackId ? document.getElementById(feedbackId) : null;
+
+            if (isValid) {
+                element.classList.remove('is-invalid');
+                element.classList.add('is-valid');
+                icon.innerHTML = '✅';
+                if (feedback) {
+                    feedback.className = 'validation-feedback text-success';
+                    feedback.textContent = successMessage;
+                }
+            } else {
+                element.classList.remove('is-valid');
+                element.classList.add('is-invalid');
+                icon.innerHTML = '❌';
+                if (feedback) {
+                    feedback.className = 'validation-feedback text-danger';
+                    feedback.textContent = errorMessage;
+                }
+            }
+        }
+
+        // Auto-dismiss flash messages
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+Applications needed are Python and PyCharm
+
+Open PyCharm and click create new project. locate the folder containing the system files and click create virtual environment. Open the terminal in PyCharm and download the following libraries using this command: “pip install flask flask-sqlalchemy werkzeug PyPDF2 spacy joblib sendgrid scikit-learn”. Additionally, you'll need to download the spaCy English language model using this command: “python -m spacy download en_core_web_sm”
+On line number 29 and 30 in the main code (new.py) change the path in quotes and put the location of where you stored your folder containing the system files and the name of the folder. Run the system using “python new.py”. The “view_tables.py” code can be used to view the database tables; you can simply run it using “python view_tables.py” if you wish to view the database tables. The database in this system is automatically initialised in the main code so there is no need to setup the database
